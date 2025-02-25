@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Geospatial Analysis with Geemap and Google Earth Engine</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+    
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.7;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2c3e50;
+        }
+    
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+    
+        h1 {
+            color: #2c3e50;
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-bottom: 0.5rem;
+        }
+    
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2c3e50);
+            border-radius: 2px;
+        }
+    
+        h2 {
+            color: #34495e;
+            margin-top: 2.5rem;
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #3498db, #2c3e50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 0.5rem 0;
+            border-left: 4px solid #3498db;
+            padding-left: 1rem;
+        }
+    
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            margin: 1.5rem 0;
+            border: 2px solid #3498db;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+            transition: transform 0.3s ease;
+        }
+    
+        .code-block:hover {
+            transform: translateY(-3px);
+        }
+    
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+    
+        img:hover {
+            transform: scale(1.02);
+        }
+    
+        table {
+            width: 100%;
+            margin: 2rem 0;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    
+        th, td {
+            padding: 1rem;
+            text-align: left;
+        }
+    
+        th {
+            background: linear-gradient(45deg, #3498db, #2c3e50);
+            color: white;
+            font-weight: 600;
+        }
+    
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+    
+        .color-box {
+    width: 60px;
+    height: 40px;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+/* Add specific color classes */
+.blue { background-color: #0077ff !important; }
+.white { background-color: #ffffff !important; border: 1px solid #ddd; }
+.green { background-color: #1e8000 !important; }
+.yellow { background-color: #ffd700 !important; }
+.orange { background-color: #ffa500 !important; }
+.red { background-color: #ff0000 !important; }
+.cyan { background-color: #00ffff !important; }
+    
+        .color-box:hover {
+            transform: scale(1.1);
+        }
+    
+        .references {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-top: 2rem;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+    
+        a {
+            color: #3498db;
+            font-weight: 600;
+            text-decoration: none;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+    
+        a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3498db;
+            transition: width 0.3s ease;
+        }
+    
+        a:hover {
+            color: #2c3e50;
+        }
+    
+        a:hover::after {
+            width: 100%;
+        }
+    
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
+        .container > * {
+            animation: fadeIn 0.6s ease forwards;
+        }
+    
+        .screenshot {
+            text-align: center;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    
+        ul {
+            list-style: none;
+            padding-left: 1.5rem;
+        }
+    
+        ul li {
+            position: relative;
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+        }
+    
+        ul li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: #3498db;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <article>
+            <!-- 1. Title -->
+            <header>
+                <h1>Mastering Geospatial Analysis with Geemap and Google Earth Engine</h1>
+            </header>
+
+            <!-- 2. Introduction -->
+            <section>
+                <h2>Introduction</h2>
+                <p>Geemap is a Python bridge to Google Earth Engine (GEE), solving a critical challenge in geospatial analysis. While GEE provides unparalleled access to petabyte-scale satellite imagery and environmental datasets, its native JavaScript API created barriers for Python-centric workflows. Geemap resolves this by:</p>
+                <ul>
+                    <li>Enabling Pythonic access to 50+ million GEE images/collections</li>
+                    <li>Providing interactive Jupyter notebook integration</li>
+                    <li>Offering 100+ prebuilt visualization basemaps</li>
+                    <li>Simplifying complex geospatial operations with intuitive syntax</li>
+                </ul>
+                <p>This tool is particularly valuable for environmental scientists, GIS professionals, and data analysts needing to process large-scale Earth observation data without infrastructure overhead.</p>
+            </section>
+
+            <!-- Installation & Setup -->
+            <section>
+                <h2>Installation Instructions for geemap</h2>
+
+    <h3>1. Install Required Software</h3>
+    <p>Before installing geemap, ensure you have the following installed:</p>
+    <ul>
+        <li><strong>Python (≥3.7)</strong><br>
+            You can check your Python version by running:
+            <pre class="code-block"><code>python --version</code></pre>
+            If Python is not installed, download it from <a href="https://www.python.org" target="_blank">python.org</a>.
+        </li>
+        <li><strong>Anaconda (Optional, but Recommended for Jupyter Support)</strong><br>
+            Download and install Anaconda from <a href="https://www.anaconda.com" target="_blank">anaconda.com</a> or Miniconda (lightweight version) from <a href="https://docs.conda.io/en/latest/miniconda.html" target="_blank">miniconda</a>.
+        </li>
+    </ul>
+
+    <h3>2. Create a Virtual Environment (Recommended)</h3>
+    <p>To keep dependencies clean, create a virtual environment:</p>
+    <ul>
+        <li><strong>Using conda:</strong>
+            <pre class="code-block"><code>conda create -n gee_env python=3.9 -y
+conda activate gee_env</code></pre>
+        </li>
+        <li><strong>Using virtualenv (for those not using Anaconda):</strong>
+            <pre class="code-block"><code>python -m venv gee_env
+source gee_env/bin/activate  # Mac/Linux
+gee_env\Scripts\activate     # Windows</code></pre>
+        </li>
+    </ul>
+
+    <h3>3. Install geemap</h3>
+    <p>Once inside the environment, install geemap using either:</p>
+    <ul>
+        <li><strong>pip (for general users):</strong>
+            <pre class="code-block"><code>pip install geemap</code></pre>
+        </li>
+        <li><strong>conda (for Anaconda users):</strong>
+            <pre class="code-block"><code>conda install -c conda-forge geemap</code></pre>
+        </li>
+    </ul>
+
+    <h3>4. Install Google Earth Engine (GEE) API</h3>
+    <p>geemap requires the Earth Engine API, which can be installed using:</p>
+    <pre class="code-block"><code>pip install earthengine-api</code></pre>
+    <p>Check if it’s installed correctly by running:</p>
+    <pre class="code-block"><code>earthengine authenticate</code></pre>
+    <p>This will open a browser window asking you to authenticate with your Google account. If the authentication is successful, you will receive a verification code to enter in the terminal.</p>
+
+    <h3>5. Install Jupyter Notebook (Optional but Recommended)</h3>
+    <p>If you plan to use geemap in a Jupyter Notebook, install:</p>
+    <pre class="code-block"><code>pip install notebook jupyterlab</code></pre>
+    <p>And to enable geemap in Jupyter:</p>
+    <pre class="code-block"><code>pip install ipywidgets
+jupyter nbextension enable --py widgetsnbextension</code></pre>
+    <p>Run Jupyter Notebook using:</p>
+    <pre class="code-block"><code>jupyter notebook</code></pre>
+
+    <h3>6. Verify the Installation</h3>
+    <p>To check if geemap is working, open a Python shell or Jupyter Notebook and run:</p>
+    <pre class="code-block"><code>import geemap
+import ee
+
+# Initialize Earth Engine
+ee.Initialize()
+
+# Create an interactive
+Map = geemap.Map()
+Map
+</code>
+    </pre>
+</section>
+            </section>
+
+            <!-- Key Features -->
+            <section>
+                <h2>Key Features</h2>
+                <ul>
+                    <li>Interactive mapping with multiple basemaps</li>
+                    <li>Advanced data visualization tools</li>
+                    <li>Jupyter notebook integration</li>
+                    <li>Time series analysis capabilities</li>
+                    <li>Earth Engine data export functionality</li>
+                </ul>
+            </section>
+
+            <!-- Code Examples -->
+            <section>
+                <h2>Code Examples</h2>
+                
+                <h3>Creating a Map</h3>
+                <pre class="code-block"><code>
+import ee
+import geemap
+
+m = geemap.Map(center=[40, -100], zoom=4)
+dem = ee.Image("USGS/SRTMGL1_003")
+m.add_layer(dem, {"min":0, "max":4000}, "Elevation")
+m
+                </code></pre>
+                <section>
+                    <p>Screenshot</p>
+                    <div class="screenshot">
+                        <img src="hah.jpeg" alt="Geemap interface with layer controls">
+                        <p>Creating a map</p>
+                    </div>
+                </section>
+                
+                <h3>Adding Layer Manager</h3>
+                <p>The layer manager provides control over layer visibility and transparency. It enables toggling layers on and off and adjusting transparency with a slider, making it easy to customize map visuals:</p>
+                <pre class="code-block"><code>
+m.add("layer_manager")
+                </code></pre>
+
+                <h3>Working with Datasets</h3>
+                <pre class="code-block"><code>
+from geemap.datasets import DATA
+m = geemap.Map()
+dataset = ee.Image(DATA.USGS_GAP_AK_2001)
+m.add_layer(dataset, {}, "GAP Alaska")
+m.centerObject(dataset, zoom=4)
+m
+                </code></pre>
+                <p>The datasets module contains a lot of data, allowing you to display various datasets on the map.</p>
+
+                <h3>Retrieving Metadata for a Specific Dataset</h3>
+                <pre class="code-block"><code>
+from geemap.datasets import get_metadata
+
+metadata = get_metadata(DATA.USGS_GAP_AK_2001)
+print(metadata)
+                </code></pre>
+                <p>This code snippet retrieves the metadata for the selected dataset.</p>
+
+                <h3>Image Visualization</h3>
+                <pre class="code-block"><code>
+# Load and display elevation data
+image = ee.Image("AHN/AHN2_05M_INT")
+vis_params = {
+    'min': 0,
+    'max': 4000,
+    'palette': ['#006633', '#E5FFCC', '#662A00', '#D8D8D8', '#F5F5F5'],
+    'opacity': 0.8
+}
+
+m.add_layer(image, vis_params, "Elevation Map")
+m.add_colorbar(vis_params, label="Elevation (m)")
+m
+                </code></pre>
+                <p>Key visualization parameters include band selection, value ranges, color palettes, and opacity controls.</p>
+
+                <h3>Loading Feature Collections</h3>
+                <pre class="code-block"><code>
+m = geemap.Map()
+fc = ee.FeatureCollection("TIGER/2016/Roads")
+m.set_center(-83, 35, 12)
+m.add_layer(fc, {}, "Census Roads")
+m
+                </code></pre>
+                <p>The above code snippet loads the feature collection. We use <code>fc = ee.FeatureCollection("TIGER/2016/Roads")</code> to load the Feature Collection, which contains a collection of images that can be filtered and analyzed.</p>
+                <section>
+                    <p>Screenshot</p>
+                    <div class="screenshot">
+                        <img src="hahah.jpeg" alt="Geemap interface with layer controls">
+                        <p>Using Tiger from collection</p>
+                    </div>
+                </section>
+
+                <h3>Filtering Feature Collections</h3>
+                <pre class="code-block"><code>
+m = geemap.Map()
+states = ee.FeatureCollection("TIGER/2018/States")
+fc = states.filter(ee.Filter.eq("NAME", "Tennessee"))
+m.add_layer(fc, {}, "Tennessee")
+m.center_object(fc, 7)
+m
+                </code></pre>
+                <p>In the above code snippet, <code>fc</code> is the filtered Feature Collection. The line <code>fc = states.filter(ee.Filter.eq("NAME", "Tennessee"))</code> filters the collection to include only features where the "NAME" equals "Tennessee". The map is then centered on this feature collection.</p>
+                <p>Other filtering options include <code>Filter.neq</code> (not equal), <code>Filter.lt</code> (less than), <code>Filter.gt</code> (greater than), <code>Filter.gte</code> (greater than or equal), <code>Filter.or</code>, <code>Filter.not</code>, <code>Filter.inList</code> (if value is in that list), and <code>Filter.StringStartsWith</code> (checks starting substring).</p>
+                <section>
+                    <p>Screenshot</p>
+                    <div class="screenshot">
+                        <img src="hahaha.jpeg" alt="Geemap interface with layer controls">
+                        <p>Filtering Feature collection</p>
+                    </div>
+                </section>
+
+                <h3>Feature Collection Operations</h3>
+                <pre class="code-block"><code>
+fc.size()
+fea = fc.first()
+fea.toDictionary()
+                </code></pre>
+                <p>These three lines of code represent different actions: the first line returns the number of elements in <code>fc</code>, the second line selects the first feature in the feature collection, and the third line converts that feature to a dictionary.</p>
+
+                <h3>Converting Feature Collection to Pandas DataFrame</h3>
+                <pre class="code-block"><code>
+geemap.ee_to_df(fc)
+                </code></pre>
+                <p>This line converts the feature collection into a pandas DataFrame, which can be used for data analysis. Note that this operation may take time as it converts a server-side object into a client-side object.</p>
+
+                <h3>Styling the Map Using Style</h3>
+                <pre class="code-block"><code>
+m = geemap.Map(center=[40, -100], zoom=4)
+states = ee.FeatureCollection("TIGER/2018/States")
+style = {"color": "0000ffff", "width": 2, "lineType": "solid", "fillColor": "FF000080"}
+m.add_layer(states.style(**style), {}, "US States")
+m
+                </code></pre>
+                <p>The above snippet styles the map with specified parameters: <code>color</code> for the boundary color, <code>width</code> for the boundary width, <code>linestyle</code> for the style of the boundary, and <code>fillcolor</code> for the color filled inside the boundaries. The <code>**style</code> syntax unpacks the dictionary.</p>
+
+                <h3>Styling Using a Color Palette</h3>
+                <pre class="code-block"><code> m = geemap.Map(center=[40, -100], zoom=4)
+                    states = ee.FeatureCollection("TIGER/2018/States")
+                    vis_params = {
+                        "color": "000000",
+                        "colorOpacity": 1,
+                        "pointSize": 3,
+                        "pointShape": "circle",
+                        "width": 2,
+                        "lineType": "solid",
+                        "fillColorOpacity": 0.66,
+                    }
+                    palette = ["006633", "E5FFCC", "662A00", "D8D8D8", "F5F5F5"]
+                    m.add_styled_vector(
+                        states, column="NAME", palette=palette, layer_name="Styled vector", **vis_params
+                    )
+                    m
+                    
+                </code></pre>
+                <p>This code snippet demonstrates how to style a feature collection using a color palette, allowing for more visually appealing representations based on attribute values.</p>
+
+                <h3>Clearing All Controls from the Map</h3>
+                <p>To get only the map while clearing all controls available, add the following line:</p>
+                <pre class="code-block"><code>
+m.clear_controls()
+                </code></pre>
+                <h3>Clearing Specific Controls</h3>
+                <p>To clear only specific controls, you need to know the names of all the controls. Use the following code:</p>
+                <pre class="code-block"><code>
+m = geemap.Map(data_ctrl=False, toolbar_ctrl=False, draw_ctrl=False)
+m
+                </code></pre>
+
+                <h3>Viewing All Controls</h3>
+                <p>To see the names of all the controls, use:</p>
+                <pre class="code-block"><code>
+m.controls()
+                </code></pre>
+
+                <h3>Adding Text to the Map</h3>
+                <p>You can add text to the map and specify its location:</p>
+                <pre class="code-block"><code>
+m.add_text(text="Write whatever you want to write here.", position="topright")
+                </code></pre>
+                <p>You can assign other values like "bottomright", "bottomleft", "topleft" to the location. The text adjusts itself with respect to the controls on the map, ensuring it never overlaps with them.</p>
+
+                <h3>Adding a Basemap Selector</h3>
+                <p>To add a basemap selector, which helps to change quickly between various basemaps, write the following line:</p>
+                <pre class="code-block"><code>
+m.add("basemap_selector")
+                </code></pre>
+
+                
+                <h3>Map Configuration & Controls</h3>
+                <pre class="code-block"><code>
+# Advanced map configuration
+m = geemap.Map(
+    center=[40, -100],  # Latitude, Longitude
+    zoom=10,            # Higher values = more zoom
+    height="600px",     # Map container height
+    data_ctrl=False,    # Disable data controls
+    toolbar_ctrl=False, # Hide toolbar
+    draw_ctrl=False     # Remove drawing tools
+)
+m.clear_controls()      # Remove all existing controls
+m
+                </code></pre>
+                <p>The <code>center</code> parameter takes [latitude, longitude], <code>zoom</code> controls magnification (4-22 typical range), and <code>height</code> sets map display size.</p>
+
+                <h3>Map Customization</h3>
+                <pre class="code-block"><code>
+# Add interactive elements
+m.add_text(
+    text="Satellite Analysis 2024",
+    position="topright"  # Options: topleft, topright, bottomleft, bottomright
+)
+m.add("basemap_selector")  # Add basemap dropdown
+m.add("layer_manager")     # Add layer visibility controls
+m
+                </code></pre>
+                <p>Text positioning automatically avoids control overlap. The basemap selector provides quick access to 100+ base layers.</p>
+            </section>
+
+            <!-- Screenshots -->
+            <section>
+                <h2>Screenshots</h2>
+                <div class="screenshot">
+                    <img src="WhatsApp Image 2025-02-24 at 14.58.33.jpeg" alt="Geemap interface with layer controls">
+                    <p></p>
+                </div>
+            
+                <div class="screenshot">
+                    <img src="WhatsApp Image 2025-02-24 at 15.02.30.jpeg" alt="Geemap interface with layer controls">
+                    <p></p>
+                </div>
+            </section>
+            
+            <!-- New Exercises Section -->
+            <section>
+                <h2>Practical Exercises</h2>
+                <h3>To analyze and visualize vegetation health using NDVI from Landsat 8 satellite imagery in Google Earth Engine with Python.</h3>
+                <pre class="code-block"><code>
+point = ee.Geometry.Point([77.5937, 12.9716])
+
+
+image = (ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA")
+    .filterBounds(point)
+    .filterDate('2022-01-01', '2022-12-31')
+    .sort('CLOUD_COVER')
+    .first())
+                    
+                    
+true_color_vis = {
+    'bands': ['B4', 'B3', 'B2'],
+    'min': 0, 'max': 0.3
+}
+                    
+                    
+ndvi = image.normalizedDifference(['B5', 'B4']).rename('NDVI')
+                    
+                    
+ndvi_vis = {
+    'min': 0,
+    'max': 1,
+    'palette': ['blue', 'white', 'green']
+}
+                    
+                    
+Map = geemap.Map()
+Map.centerObject(image, 10)
+                    
+                    
+Map.addLayer(image, true_color_vis, "True Color Image")
+Map.addLayer(ndvi, ndvi_vis, "NDVI")
+                    
+                    
+Map
+                   
+                 </code></pre>
+                    <section>
+                        <p>Screenshot</p>
+                        <div class="screenshot">
+                            <img src="Screenshot 2025-02-24 at 23.12.31.png" alt="Geemap interface with layer controls">
+                            <p>Vegetation health using NDVI from Landsat 8</p>
+                        </div>
+                    </section><p>NDVI Color Interpretation</p>
+                    <table>
+                        <tr>
+                            <th>Color</th>
+                            <th>NDVI Range</th>
+                            
+                            <th>Interpretation</th>
+                        </tr>
+                        <tr>
+                            <td><span class="color-box blue"></span></td>
+                            <td>NDVI ≈ 0 or lower</td>
+                            
+                            <td>Water, barren land, or urban areas</td>
+                        </tr>
+                        <tr>
+                            <td><span class="color-box white"></span></td>
+                            <td>NDVI ≈ 0.5</td>
+                            
+                            <td>Sparse vegetation or transition zones</td>
+                        </tr>
+                        <tr>
+                            <td><span class="color-box green"></span></td>
+                            <td>NDVI ≈ 1</td>
+                            
+                            <td>Dense and healthy vegetation</td>
+                        </tr>
+                    </table>
+
+
+                    <h3>Real-Time Flood Detection using GEE & Rainfall Correlation</h3>
+                    <pre class="code-block"><code>
+
+aoi = ee.Geometry.Rectangle([83.5, 24.5, 88, 27]) 
+
+pre_flood = (ee.ImageCollection("COPERNICUS/S1_GRD")
+             .filterBounds(aoi)
+             .filterDate("2024-05-01", "2024-06-01")  
+             .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VV"))
+             .select("VV")
+             .mean())
+
+post_flood = (ee.ImageCollection("COPERNICUS/S1_GRD")
+              .filterBounds(aoi)
+              .filterDate("2024-07-01", "2024-08-01")  
+              .filter(ee.Filter.listContains("transmitterReceiverPolarisation", "VV"))
+              .select("VV")
+              .mean())
+
+
+flood_extent = post_flood.subtract(pre_flood).gt(3)  
+ 
+rainfall = (ee.ImageCollection("UCSB-CHG/CHIRPS/DAILY")
+            .filterBounds(aoi)
+            .filterDate("2024-07-01", "2024-08-01")
+            .mean())
+
+sar_vis_params = {"min": -25, "max": 0, "palette": ["blue", "white", "red"]}
+rainfall_vis_params = {"min": 0, "max": 100, "palette": ["yellow", "orange", "red"]}
+
+map_ = geemap.Map()
+map_.centerObject(aoi, 7)
+map_.addLayer(pre_flood, sar_vis_params, "Pre-Flood (VV)")
+map_.addLayer(post_flood, sar_vis_params, "Post-Flood (VV)")
+map_.addLayer(flood_extent.selfMask(), {"palette": ["cyan"]}, "Flooded Areas")
+map_.addLayer(rainfall, rainfall_vis_params, "Rainfall Intensity")
+map_
+                    </code></pre>
+                    <section>
+                        <p>Screenshot</p>
+                        <div class="screenshot">
+                            <img src="Screenshot 2025-02-25 at 00.01.38.png" alt="Geemap interface with layer controls">
+                            <p>Real-Time Flood Detection using GEE & Rainfall Correlation</p>
+                        </div>
+                    </section>
+                    <p>GEE Map Color Legend</p>
+    <table>
+        <tr>
+            <th>Color</th>
+            <th>Dataset</th>
+            <th>Meaning</th>
+        </tr>
+        <tr>
+            <td><span class="color-box yellow"></span></td>
+            <td>CHIRPS Rainfall</td>
+            <td>Low Rainfall</td>
+        </tr>
+        <tr>
+            <td><span class="color-box orange"></span></td>
+            <td>CHIRPS Rainfall</td>
+            <td>Moderate Rainfall</td>
+        </tr>
+        <tr>
+            <td><span class="color-box red"></span></td>
+            <td>CHIRPS Rainfall</td>
+            <td>High Rainfall</td>
+        </tr>
+        <tr>
+            <td><span class="color-box blue"></span></td>
+            <td>Sentinel-1 SAR</td>
+            <td>Low backscatter (Possibly water)</td>
+        </tr>
+        <tr>
+            <td><span class="color-box white"></span></td>
+            <td>Sentinel-1 SAR</td>
+            <td>Mixed land cover</td>
+        </tr>
+        <tr>
+            <td><span class="color-box red"></span></td>
+            <td>Sentinel-1 SAR</td>
+            <td>High backscatter (Urban, dry land)</td>
+        </tr>
+        <tr>
+            <td><span class="color-box cyan"></span></td>
+            <td>Flood Extent</td>
+            <td>Areas that experienced flooding</td>
+        </tr>
+    </table>
+
+            </section>
+
+            
+            <!-- Use Cases -->
+            <section>
+                <h2>Use Cases</h2>
+                <ul>
+                    <li>Environmental change detection</li>
+                    <li>Agricultural monitoring</li>
+                    <li>Disaster response planning</li>
+                    <li>Urban development tracking</li>
+                </ul>
+            </section>
+
+            <!-- Conclusion -->
+            <section>
+                <h2>Conclusion</h2>
+                <p>Geemap revolutionizes geospatial analysis by combining Google Earth Engine's massive data catalog with Python's flexibility. Its intuitive interface and powerful features make it essential for researchers and analysts working with Earth observation data.</p>
+            </section>
+
+            <!-- References -->
+            <section class="references">
+                <h2>References</h2>
+                <ul>
+                    <li><a href="https://geemap.org">Geemap Official Documentation</a></li>
+                    <li><a href="https://earthengine.google.com">Google Earth Engine</a></li>
+                    <li><a href="https://doi.org/10.21105/joss.02305">Geemap JOSS Paper</a></li>
+                    <li><a href="https://developers.google.com/earth-engine">Earth Engine Developer Guide</a></li>
+                    <li><a href="https://github.com/gee-community/geemap">GitHub Repository</a></li>
+                </ul>
+            </section>
+        </article>
+    </div>
+</body>
+</html>
